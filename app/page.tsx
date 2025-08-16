@@ -1,103 +1,189 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import SummaryCard from './components/SummaryCard';
+
+interface Card {
+  summary: string | string[];
+  full_text: string;
+  username: string;
+  subreddit: string;
+  upvotes: number;
+  url?: string;
+  title?: string;
+  description?: string;
+}
+
+interface Message {
+  id: string;
+  type: 'user' | 'assistant';
+  content: string;
+  cards?: Card[];
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.length === 0 || isLoading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      type: 'user',
+      content: input.trim()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: input.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch response');
+      }
+
+      const data = await response.json();
+
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: `Found ${data.cards.length} relevant discussions`,
+        cards: data.cards
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: 'assistant',
+        content: 'Sorry, I encountered an error processing your request.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen max-w-5xl mx-auto bg-gray-50">
+      <header className="bg-white shadow-sm border-b px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-sm">R</span>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-800">Reddit Chat Assistant</h1>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <p className="text-sm text-gray-600 mt-1">Get AI-summarized insights from Reddit discussions</p>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {messages.length === 0 && (
+          <div className="text-center mt-24">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-white text-2xl">💬</span>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Reddit Chat Assistant</h2>
+            <p className="text-gray-600 max-w-md mx-auto">Ask me anything about Reddit discussions and I&apos;ll find relevant threads with AI-powered summaries!</p>
+            <div className="mt-6 text-sm text-gray-500">
+              <p>Try asking about: &quot;programming tips&quot;, &quot;career advice&quot;, or &quot;technology trends&quot;</p>
+            </div>
+          </div>
+        )}
+        
+        {messages.map((message) => (
+  <div
+    key={message.id}
+    className={`w-full ${message.type === 'user' ? 'flex justify-end' : 'space-y-4'}`}
+  >
+    {message.type === 'user' ? (
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-2xl rounded-br-md px-5 py-3 shadow-sm max-w-[90%]">
+        <p className="text-sm leading-relaxed">{message.content}</p>
+      </div>
+    ) : (
+      <>
+        <div className="flex justify-start">
+          <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border max-w-[90%]">
+            <p className="text-gray-800 text-sm leading-relaxed">{message.content}</p>
+          </div>
+        </div>
+        {message.cards && (
+          <div className="space-y-4">
+            {message.cards.map((card, index) => (
+              <SummaryCard
+                key={index}
+                summary={card.summary}
+                full_text={card.full_text}
+                title={card.title}
+                description={card.description}
+                metadata={{
+                  username: card.username,
+                  subreddit: card.subreddit,
+                  upvotes: card.upvotes,
+                  url: card.url
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-white rounded-2xl rounded-bl-md px-5 py-4 shadow-sm border">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                </div>
+                <span className="text-gray-600 text-sm">Searching Reddit discussions and generating summaries...</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white border-t shadow-lg px-6 py-4">
+        <div className="flex gap-3 max-w-4xl mx-auto">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask about any topic on Reddit..."
+            className="flex-1 border-2 border-gray-200 rounded-2xl px-5 py-3 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+            disabled={isLoading}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <button
+            type="submit"
+            disabled={input.length === 0 || isLoading}
+            className={`px-8 py-3 rounded-2xl transition-all font-medium text-sm shadow-sm ${
+              input.length === 0 || isLoading
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 active:scale-95 cursor-pointer shadow-md'
+            }`}
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Sending...
+              </span>
+            ) : 'Send'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
