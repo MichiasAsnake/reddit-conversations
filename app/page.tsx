@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import SummaryCard from './components/SummaryCard';
 
 interface Card {
@@ -41,12 +42,18 @@ export default function Home() {
     setIsLoading(true);
 
     try {
+      const lastUserMessage = messages.filter(m => m.type === 'user').slice(-1)[0];
+      const previousQuery = lastUserMessage?.content;
+      
       const response = await fetch('/api/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query: input.trim() }),
+        body: JSON.stringify({ 
+          query: input.trim(),
+          previousQuery: previousQuery 
+        }),
       });
 
       if (!response.ok) {
@@ -77,20 +84,20 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen max-w-5xl mx-auto bg-gray-50">
-      <header className="bg-white shadow-sm border-b px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Reddit Chat Assistant</h1>
+      <header className="flex align-middle bg-white shadow-sm border-b px-6 py-4">
+        <div className="flex items-center gap-3 p-5">
+         <Image src="/logo.svg" alt="logo" width={50} height={100}/>
         </div>
+        <div className='flex-1 flex flex-col justify-center'>
+          <h1 className="text-2xl font-bold text-gray-800">Reddit Chat Assistant</h1>
         <p className="text-sm text-gray-600 mt-1">Get AI-summarized insights from Reddit discussions</p>
+        </div>
       </header>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && (
           <div className="text-center mt-24">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-white text-2xl">💬</span>
             </div>
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Welcome to Reddit Chat Assistant</h2>

@@ -24,7 +24,7 @@ interface SummarizedThread {
   };
 }
 
-export async function summarizeThread(threadData: ThreadData): Promise<SummarizedThread> {
+export async function summarizeThread(threadData: ThreadData, userQuery?: string): Promise<SummarizedThread> {
   try {
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -34,27 +34,33 @@ export async function summarizeThread(threadData: ThreadData): Promise<Summarize
       .map(comment => `${comment.username} (${comment.upvotes} upvotes): ${comment.text}`)
       .join('\n\n');
 
-    const prompt = `You are helping to summarize Reddit discussions. Given the following Reddit thread and its top comments, create a short title (max 6-8 words), a brief description of what the post is about, and 2-3 concise bullet points that capture the key insights, advice, or consensus from the discussion.
+    const prompt = `You are a Reddit content summarizer. Transform the following Reddit thread into a structured summary that directly addresses the user's specific query.
 
-Thread Title: ${threadData.thread_title}
-Subreddit: ${threadData.subreddit}
+${userQuery ? `**User Query:** ${userQuery}` : ''}
+**Thread Title:** ${threadData.thread_title}
+**Subreddit:** ${threadData.subreddit}
+**Top Comments:** ${commentsText}
 
-Top Comments:
-${commentsText}
+Create a summary that:
+1. **Directly relates to the user query** - filter and frame all insights through this lens
+2. **Synthesizes thread + comments** - don't just summarize the thread alone  
+3. **Categorizes insights** using these labels when appropriate:
+   - "Consensus: ..." (widely agreed points)
+   - "Contrarian: ..." (opposing viewpoints)
+   - "Unique insight: ..." (novel or unexpected perspectives)
 
-Please provide:
-1. A short, engaging title (max 6-8 words) that captures the essence of the discussion
-2. A brief description (1-2 sentences) explaining what the post is about
-3. Exactly 2-3 bullet points that summarize the main takeaways
-
-Format your response as a JSON object like this:
+Return in this exact JSON format:
 {
-  "title": "Short engaging title here",
-  "description": "Brief description of what this post discusses",
-  "summary": ["First key insight", "Second key insight", "Third key insight (if applicable)"]
+  "title": "Short engaging title (6-8 words max)",
+  "description": "Brief description relating to user query",
+  "summary": [
+    "Bullet point 1 that ties to user query...",
+    "Bullet point 2 with optional label prefix...",
+    "Bullet point 3 (max 3 total)..."
+  ]
 }
 
-Only return the JSON object, nothing else.`;
+Focus on actionable insights and concrete answers${userQuery ? ' to the user\'s query' : ''}. Keep bullets concise but substantive. Only return the JSON object, nothing else.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",

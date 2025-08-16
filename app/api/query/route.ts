@@ -4,7 +4,7 @@ import { summarizeThread } from '../../lib/summarize';
 
 export async function POST(request: NextRequest) {
   try {
-    const { query } = await request.json();
+    const { query, previousQuery } = await request.json();
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json(
@@ -13,11 +13,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const redditThreads = await fetchReddit(query);
+    const contextualQuery = previousQuery ? `${previousQuery} ${query}` : query;
+    const redditThreads = await fetchReddit(contextualQuery);
 
     const cards = await Promise.all(
       redditThreads.map(async thread => {
-        const summarized = await summarizeThread(thread);
+        const summarized = await summarizeThread(thread, query);
         
         return {
           summary: summarized.summary,
