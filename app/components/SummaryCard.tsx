@@ -22,6 +22,42 @@ export default function SummaryCard({ summary, full_text, title, description, me
     setIsFlipped(!isFlipped);
   };
 
+  const formatSummaryPoint = (point: string) => {
+    // Check for emoji labels and apply pastel backgrounds
+    if (point.includes('🤝 Consensus:')) {
+      const [label, ...rest] = point.split(':');
+      return (
+        <span>
+          <span className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-md text-xs font-medium mr-2">
+            🤝 Consensus
+          </span>
+          <span>{rest.join(':').trim()}</span>
+        </span>
+      );
+    } else if (point.includes('🔀 Contrarian:')) {
+      const [label, ...rest] = point.split(':');
+      return (
+        <span>
+          <span className="inline-flex items-center bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-xs font-medium mr-2">
+            🔀 Contrarian
+          </span>
+          <span>{rest.join(':').trim()}</span>
+        </span>
+      );
+    } else if (point.includes('💡 Unique insight:')) {
+      const [label, ...rest] = point.split(':');
+      return (
+        <span>
+          <span className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-medium mr-2">
+            💡 Unique insight
+          </span>
+          <span>{rest.join(':').trim()}</span>
+        </span>
+      );
+    }
+    return <span>{point}</span>;
+  };
+
 
   return (
     <div className="w-full max-w-2xl">
@@ -37,14 +73,15 @@ export default function SummaryCard({ summary, full_text, title, description, me
                     {description && (
                       <p className="text-sm text-gray-600 mb-3 leading-relaxed">{description}</p>
                     )}
-                    <ul className="space-y-2 text-gray-700">
+                    <div className="space-y-3 text-gray-700">
                       {summary.map((point, idx) => (
-                        <li key={idx} className="flex items-start">
-                          <span className="text-blue-500 mr-2 mt-1 flex-shrink-0">•</span>
-                          <span className="text-sm leading-relaxed break-words">{point}</span>
-                        </li>
+                        <div key={idx} className="flex items-start">
+                          <div className="text-sm leading-relaxed break-words">
+                            {formatSummaryPoint(point)}
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 ) : (
                   <h3 className="font-semibold text-lg text-gray-800 break-words">{summary}</h3>

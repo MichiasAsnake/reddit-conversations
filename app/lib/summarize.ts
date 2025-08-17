@@ -41,22 +41,23 @@ ${userQuery ? `**User Query:** ${userQuery}` : ''}
 **Subreddit:** ${threadData.subreddit}
 **Top Comments:** ${commentsText}
 
-Create a summary that:
-1. **Directly relates to the user query** - filter and frame all insights through this lens
-2. **Synthesizes thread + comments** - don't just summarize the thread alone  
-3. **Categorizes insights** using these labels when appropriate:
-   - "Consensus: ..." (widely agreed points)
-   - "Contrarian: ..." (opposing viewpoints)
-   - "Unique insight: ..." (novel or unexpected perspectives)
+Create a structured summary that:
+1. **Directly relates to the user query** — frame everything so it’s useful for the person asking.
+2. **Synthesize OP + top comments** — capture both the situation described in the OP and the most upvoted or insightful replies.
+3. **Description should feel natural** — 2–4 sentences written in plain, conversational language. Avoid third-person phrases like “users share” or “people discuss.” Instead, present the context and key dynamics as if you’re retelling the thread to a friend.
+4. **Categorize insights** using these emoji labels when appropriate:
+   - "🤝 Consensus: ..." (widely agreed points)
+   - "🔀 Contrarian: ..." (opposing viewpoints) 
+   - "💡 Unique insight: ..." (novel or unexpected perspectives)
 
 Return in this exact JSON format:
 {
   "title": "Short engaging title (6-8 words max)",
-  "description": "Brief description relating to user query",
+  "description": "2–4 sentences retelling the OP's situation and main dynamics in natural language, with enough context to feel authentic.",
   "summary": [
-    "Bullet point 1 that ties to user query...",
-    "Bullet point 2 with optional label prefix...",
-    "Bullet point 3 (max 3 total)..."
+    "🤝 Consensus: Point that ties to user query...",
+    "🔀 Contrarian: Point with opposing view...",
+    "💡 Unique insight: Novel perspective (max 3 total)..."
   ]
 }
 
