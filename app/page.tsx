@@ -83,8 +83,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-5xl mx-auto bg-gray-50">
-      <header className="flex align-middle bg-white shadow-sm border-b px-6 py-4">
+    <div className="flex flex-col h-screen w-full bg-gray-50">
+      <header className="flex align-middle bg-white shadow-sm border-b-gray-400 px-6 py-4">
         <div className="flex items-center gap-3 p-5">
          <Image src="/logo.svg" alt="logo" width={50} height={100}/>
         </div>
@@ -94,7 +94,8 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
         {messages.length === 0 && (
           <div className="text-center mt-24">
             <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -161,36 +162,40 @@ export default function Home() {
             </div>
           </div>
         )}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white border-t shadow-lg px-6 py-4">
-        <div className="flex gap-3 max-w-4xl mx-auto">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about any topic on Reddit..."
-            className="flex-1 border-2 border-gray-200 rounded-2xl px-5 py-3 focus:outline-none focus:border-blue-500 transition-colors text-sm"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={input.length === 0 || isLoading}
-            className={`px-8 py-3 rounded-2xl transition-all font-medium text-sm shadow-sm ${
-              input.length === 0 || isLoading
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 active:scale-95 cursor-pointer shadow-md'
-            }`}
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Sending...
-              </span>
-            ) : 'Send'}
-          </button>
-        </div>
-      </form>
+      <div className="bg-gradient-to-t from-white to-gray-50/50 px-6 py-6 border-t border-gray-300">
+        <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+          <div className="flex gap-3 items-end bg-white rounded-3xl border-2 border-gray-200 px-4 py-3 shadow-lg hover:border-gray-300 focus-within:border-blue-500 transition-all">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about any topic on Reddit..."
+              className="p-2 flex-1 outline-none text-gray-800 placeholder-gray-500 text-base bg-transparent resize-none"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={input.length === 0 || isLoading}
+              className={`p-2 rounded-full transition-all ${
+                input.length === 0 || isLoading
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:scale-105 active:scale-95 cursor-pointer shadow-md'
+              }`}
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
