@@ -34,17 +34,46 @@ interface RedditCommentData {
   };
 }
 
+async function getRedditAccessToken(): Promise<string> {
+  const clientId = process.env.REDDIT_CLIENT_ID;
+  const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+  
+  if (!clientId || !clientSecret) {
+    throw new Error('Reddit API credentials not configured');
+  }
+
+  const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+  
+  const response = await fetch('https://www.reddit.com/api/v1/access_token', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'RedditChatAssistant/1.0.0',
+    },
+    body: 'grant_type=client_credentials'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get access token: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}
+
 export async function fetchReddit(query: string): Promise<RedditThread[]> {
   try {
     console.log(`Searching Reddit for: ${query}`);
-    const searchUrl = `https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&sort=relevance&limit=5&type=link`;
+    
+    const accessToken = await getRedditAccessToken();
+    const searchUrl = `https://oauth.reddit.com/search?q=${encodeURIComponent(query)}&sort=relevance&limit=5&type=link`;
     
     const searchResponse = await fetch(searchUrl, {
       headers: {
-        'User-Agent': 'RedditChatAssistant/1.0.0 (by /u/GretaGerwig)',
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'RedditChatAssistant/1.0.0',
         'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
       }
     });
 
@@ -61,14 +90,13 @@ export async function fetchReddit(query: string): Promise<RedditThread[]> {
 
     for (const post of posts.slice(0, 5)) {
       try {
-        const commentsUrl = `https://www.reddit.com${post.data.permalink}.json`;
+        const commentsUrl = `https://oauth.reddit.com${post.data.permalink}`;
         
         const commentsResponse = await fetch(commentsUrl, {
           headers: {
-            'User-Agent': 'RedditChatAssistant/1.0.0 (by /u/yourapp)',
+            'Authorization': `Bearer ${accessToken}`,
+            'User-Agent': 'RedditChatAssistant/1.0.0',
             'Accept': 'application/json',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
           }
         });
 

@@ -43,8 +43,8 @@ ${userQuery ? `**User Query:** ${userQuery}` : ''}
 
 Create a structured summary that:
 1. **Directly relates to the user query** — frame everything so it’s useful for the person asking.
-2. **Synthesize OP + top comments** — capture both the situation described in the OP and the most upvoted or insightful replies.
-3. **Description should feel natural** — 2–4 sentences written in plain, conversational language. Avoid third-person phrases like “users share” or “people discuss.” Instead, present the context and key dynamics as if you’re retelling the thread to a friend.
+2. **Synthesize OP + top comments** — capture the situation described in the OP and the most upvoted or insightful replies, with most of the emphasis on the OP's context.
+3. **Description should feel natural** — 2–4 sentences written in plain, conversational language. Avoid third-person phrases like “users share” or “people discuss.” Instead, present the context as if you’re retelling the OP to a friend.
 4. **Categorize insights** using these emoji labels when appropriate:
    - "🤝 Consensus: ..." (widely agreed points)
    - "🔀 Contrarian: ..." (opposing viewpoints) 
