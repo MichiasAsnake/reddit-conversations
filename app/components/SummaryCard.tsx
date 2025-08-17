@@ -25,7 +25,7 @@ export default function SummaryCard({ summary, full_text, title, description, me
   const formatSummaryPoint = (point: string) => {
     // Check for emoji labels and apply pastel backgrounds
     if (point.includes('🤝 Consensus:')) {
-      const [label, ...rest] = point.split(':');
+      const [, ...rest] = point.split(':');
       return (
         <span>
           <span className="inline-flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-md text-xs font-medium mr-2">
@@ -35,7 +35,7 @@ export default function SummaryCard({ summary, full_text, title, description, me
         </span>
       );
     } else if (point.includes('🔀 Contrarian:')) {
-      const [label, ...rest] = point.split(':');
+      const [, ...rest] = point.split(':');
       return (
         <span>
           <span className="inline-flex items-center bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-xs font-medium mr-2">
@@ -45,7 +45,7 @@ export default function SummaryCard({ summary, full_text, title, description, me
         </span>
       );
     } else if (point.includes('💡 Unique insight:')) {
-      const [label, ...rest] = point.split(':');
+      const [, ...rest] = point.split(':');
       return (
         <span>
           <span className="inline-flex items-center bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs font-medium mr-2">

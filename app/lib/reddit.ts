@@ -13,13 +13,6 @@ interface RedditComment {
   text: string;
 }
 
-interface RelevantRedditPost {
-  title: string;
-  description: string;
-  subreddit: string;
-  url: string;
-  comments: string[];
-}
 
 interface RedditPost {
   data: {
@@ -33,6 +26,7 @@ interface RedditPost {
     score: number;
     author?: string;
   };
+  comments?: RedditComment[];
 }
 
 interface RedditCommentData {
@@ -76,7 +70,7 @@ async function getRedditAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-async function rerankWithOpenAI(query: string, posts: any[]): Promise<RedditThread[]> {
+async function rerankWithOpenAI(query: string, posts: RedditPost[]): Promise<RedditThread[]> {
   const openaiApiKey = process.env.OPENAI_API_KEY;
   if (!openaiApiKey) {
     throw new Error('OpenAI API key not configured');
@@ -133,20 +127,22 @@ Return only a JSON array of indices, like: [2, 0, 4, 1, 3]`;
       throw new Error('Invalid response format');
     }
     
-    return indices.slice(0, 5).map((index: number) => {
-      const candidate = candidates[index];
-      if (!candidate) return null;
-      
-      return {
-        thread_title: candidate.title,
-        subreddit: `r/${candidate.subreddit}`,
-        url: `https://reddit.com${candidate.permalink}`,
-        author: candidate.author,
-        score: candidate.score,
-        comments: candidate.comments
-      };
-    }).filter(Boolean);
-  } catch (error) {
+    return indices.slice(0, 5)
+      .map((index: number) => {
+        const candidate = candidates[index];
+        if (!candidate) return null;
+        
+        return {
+          thread_title: candidate.title,
+          subreddit: `r/${candidate.subreddit}`,
+          url: `https://reddit.com${candidate.permalink}`,
+          author: candidate.author,
+          score: candidate.score,
+          comments: candidate.comments
+        };
+      })
+      .filter((thread): thread is RedditThread => thread !== null);
+  } catch {
     console.error('Failed to parse OpenAI response:', rerankedText);
     return candidates.slice(0, 5).map(c => ({
       thread_title: c.title,
