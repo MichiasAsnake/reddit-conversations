@@ -4,6 +4,8 @@ interface ThreadData {
   thread_title: string;
   subreddit: string;
   url: string;
+  author: string;
+  score: number;
   comments: {
     username: string;
     upvotes: number;
@@ -95,17 +97,15 @@ Focus on actionable insights and concrete answers${userQuery ? ' to the user\'s 
       };
     }
 
-    const topComment = threadData.comments[0];
-
     return {
       summary: parsedResponse.summary,
       full_text: commentsText || 'No comments available',
       title: parsedResponse.title,
       description: parsedResponse.description,
       metadata: {
-        username: topComment?.username || 'u/unknown',
+        username: threadData.author ? `u/${threadData.author}` : 'u/unknown',
         subreddit: threadData.subreddit,
-        upvotes: topComment?.upvotes || 0,
+        upvotes: threadData.score || 0,
         url: threadData.url
       }
     };
@@ -113,7 +113,6 @@ Focus on actionable insights and concrete answers${userQuery ? ' to the user\'s 
   } catch (error) {
     console.error('Error summarizing thread:', error);
     
-    const topComment = threadData.comments[0];
     const commentsText = threadData.comments
       .map(comment => `${comment.username} (${comment.upvotes} upvotes): ${comment.text}`)
       .join('\n\n');
@@ -124,9 +123,9 @@ Focus on actionable insights and concrete answers${userQuery ? ' to the user\'s 
       title: threadData.thread_title.length > 40 ? threadData.thread_title.substring(0, 40) + '...' : threadData.thread_title,
       description: "AI summarization unavailable - view full discussion below",
       metadata: {
-        username: topComment?.username || 'u/unknown',
+        username: threadData.author ? `u/${threadData.author}` : 'u/unknown',
         subreddit: threadData.subreddit,
-        upvotes: topComment?.upvotes || 0,
+        upvotes: threadData.score || 0,
         url: threadData.url
       }
     };
